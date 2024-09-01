@@ -1,0 +1,66 @@
+import { Request, Response, NextFunction } from "express";
+import ApiError from "../helpers/ApiErrors";
+import { Task } from "../models/TaskModel";
+import { ITaskCreationAttributes } from "../types/TaskTypes";
+
+class TaskController {
+  static async get_task(
+    req: Request<undefined, undefined, { id: number },{ id: number } >,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.query;
+      const task = await Task.findByPk(id);
+      if (!task) {
+        return next(ApiError.notFound("Task not found."));
+      }
+      return res.json(task);
+    } catch (error) {
+      console.log(error);
+      return next(ApiError.internal("Server error!"));
+    }
+  }
+
+  static async get_tasks(
+    req: Request<undefined, undefined, { id: number }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { user } = res.locals;
+      const tasks = await user.$get("tasks");
+      if (!tasks) {
+        return next(ApiError.notFound("Tasks not found."));
+      }
+      return res.json(tasks);
+    } catch (error) {
+      console.log(error);
+      return next(ApiError.internal("Server error!"));
+    }
+  }
+
+  //   static async create_task(
+  //     req: Request<undefined, undefined, CreationUserAttributes>,
+  //     res: Response,
+  //     next: NextFunction
+  //   ) {
+  //     try {
+  //       const { email, login, password } = req.body;
+  //       console.log(req.body);
+  //       if (await User.findOne({ where: { email: email } })) {
+  //         return next(ApiError.conflict("User already exists."));
+  //       }
+  //       const user = await User.create(req.body);
+  //       if (!user) {
+  //         return next(ApiError.internal("User account creation error."));
+  //       }
+  //       return res.json(user);
+  //     } catch (error) {
+  //       console.log(error);
+  //       return next(ApiError.internal("Server error!"));
+  //     }
+  //   }
+}
+
+export default TaskController;
